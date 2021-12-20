@@ -1,7 +1,7 @@
 const canvas = document.getElementById('myCanvas');
-console.log('canvas', canvas)
-canvas.width = window.innerWidth - 500;
-canvas.height = window.innerHeight * 2;
+
+canvas.width = window.innerWidth;
+canvas.height = window.innerHeight;
 const ctx = canvas.getContext("2d");
 ctx.font = "20px Arial";
 
@@ -34,6 +34,7 @@ class Node {
 class BST {
     constructor() {
         this.root = null;
+        this.dataArray = [];
     }
     insertHelper(value, node, parentNode, gap, x, y) {
         gap = (gap / 2 > 60) ? gap / 2 : gap;
@@ -44,6 +45,10 @@ class BST {
                 makeNode(parentNode.x, parentNode.y, parentNode.value);
                 createText(parentNode.x, parentNode.y, parentNode.value);
             }
+
+            this.dataArray.push({
+                x, y, value
+            });
             makeNode(x, y, value);
             createText(x, y, value);
 
@@ -64,11 +69,54 @@ class BST {
     }
 }
 
+//Check if point is in circle
+function isInRectangle(centerX, centerY, radius, x, y) {
+    return x >= centerX - radius && x <= centerX + radius && y >= centerY - radius && y <= centerY + radius;
+}
+function isPointInCircle(centerX, centerY, radius, x, y) {
+    if (isInRectangle(centerX, centerY, radius, x, y)) {
+        let dx = centerX - x;
+        let dy = centerY - y;
+        dx *= dx;
+        dy *= dy;
+        const distanceSquared = dx + dy;
+        const radiusSquared = radius * radius;
+        return distanceSquared <= radiusSquared;
+    }
+    return false;
+}
+
 var tree = new BST();
-var tree = new BST();
-var bstForm = document.getElementById('bstForm');
-bstForm.addEventListener('submit', (event) => {
-    event.preventDefault();
-    let val = document.querySelector('[name="bst-val"]').value;
-    tree.insert(parseInt(val));
+
+//Listen Space Key Press Event
+document.body.onkeyup = function (e) {
+    if (e.keyCode == 32) {
+
+        //Create random number between -100 ~ 100
+        const val = Math.random() * 200 - 100;
+        tree.insert(parseInt(val));
+
+        //Check is value is in range of -100 ~ 100
+        if (val >= -100 && val <= 100)
+            tree.insert(parseInt(val));
+        else
+            alert('The number must be in the range of -100 to 100')
+    }
+}
+
+//Get Mouse Click Event
+document.addEventListener("click", function (event) {
+    //Find clicked number
+    let num = 1000;
+    for (let i = 0; i < tree.dataArray.length; i++) {
+        if (isPointInCircle(tree.dataArray[i].x, tree.dataArray[i].y, 30, event.clientX, event.clientY)) {
+            num = tree.dataArray[i].value;
+            break;
+        }
+    }
+
+    //Remove if number is clicked
+    if (num != 1000) {
+        console.log('deleted')
+    }
 });
