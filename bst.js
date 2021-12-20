@@ -5,17 +5,38 @@ canvas.height = window.innerHeight;
 const ctx = canvas.getContext("2d");
 ctx.font = "20px Arial";
 
-function makeNode(x, y) {
+
+var curPerc = 0;
+var isRedrawing = false;
+
+function makeNode(x, y, value, currentPercent) {
+
+    ctx.beginPath();
+    ctx.arc(x, y, 30, 0, 2 * Math.PI * currentPercent);
+    ctx.fillStyle = 'white';
+    ctx.fill();
+    ctx.stroke();
+    ctx.fillStyle = "black";
+    ctx.fillText(value, x - 10, y + 5);
+
+    curPerc++;
+    if (curPerc < 100) {
+        requestAnimationFrame(function () {
+            makeNode(x, y, value, curPerc / 100)
+        });
+    }
+}
+function redrawNode(x, y, value) {
+    console.log('redrwaing')
     ctx.beginPath();
     ctx.arc(x, y, 30, 0, 2 * Math.PI);
     ctx.fillStyle = 'white';
     ctx.fill();
     ctx.stroke();
-}
-function createText(x, y, data) {
     ctx.fillStyle = "black";
-    ctx.fillText(data, x - 10, y + 5);
+    ctx.fillText(value, x - 10, y + 5);
 }
+
 function joinNode(x, y, toX, toY) {
     ctx.moveTo(x, y);
     ctx.lineTo(toX, toY);
@@ -37,20 +58,19 @@ class BST {
         this.dataArray = [];
     }
     insertHelper(value, node, parentNode, gap, x, y) {
+        curPerc = 0;    //Clear animation percentage 
         gap = (gap / 2 > 60) ? gap / 2 : gap;
         if (node === null) {
             node = new Node(value, x, y);
             if (parentNode !== null) {
-                joinNode(x, y, parentNode.x, parentNode.y);
-                makeNode(parentNode.x, parentNode.y, parentNode.value);
-                createText(parentNode.x, parentNode.y, parentNode.value);
+                joinNode(parentNode.x, parentNode.y, x, y);
+                isRedrawing ? redrawNode(parentNode.x, parentNode.y, parentNode.value) : makeNode(parentNode.x, parentNode.y, parentNode.value);
             }
 
             this.dataArray.push({
                 x, y, value
             });
-            makeNode(x, y, value);
-            createText(x, y, value);
+            isRedrawing ? redrawNode(x, y, value) : makeNode(x, y, value);
 
             return node;
         }
@@ -64,7 +84,8 @@ class BST {
         }
         return node;
     }
-    insert(value) {
+    insert(value, redrawing) {
+        isRedrawing = redrawing;
         this.root = this.insertHelper(value, this.root, null, 500, 600, 50);
     }
     remove(value) {
@@ -83,7 +104,7 @@ class BST {
         this.dataArray = [];
         this.root = null;
         for (let i = 0; i < newDataArray.length; i++)
-            this.insert(newDataArray[i]);
+            this.insert(newDataArray[i], true);
     }
 }
 
@@ -129,11 +150,11 @@ document.body.onkeyup = function (e) {
         //Create random number between -100 ~ 100
         const val = getRandomNumber();
         console.log(val)
-        tree.insert(parseInt(val));
+        tree.insert(parseInt(val), false);
 
         //Check is value is in range of -100 ~ 100
         if (val >= -100 && val <= 100)
-            tree.insert(parseInt(val));
+            tree.insert(parseInt(val), false);
         else
             alert('The number must be in the range of -100 to 100')
     }
