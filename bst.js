@@ -5,7 +5,7 @@ canvas.height = window.innerHeight;
 const ctx = canvas.getContext("2d");
 ctx.font = "20px Arial";
 
-function makeNode(x, y, data) {
+function makeNode(x, y) {
     ctx.beginPath();
     ctx.arc(x, y, 30, 0, 2 * Math.PI);
     ctx.fillStyle = 'white';
@@ -67,6 +67,24 @@ class BST {
     insert(value) {
         this.root = this.insertHelper(value, this.root, null, 500, 600, 50);
     }
+    remove(value) {
+        const indexOfValue = this.dataArray.findIndex(item => { return item.value === value });
+        let newDataArray = [];
+
+        if (indexOfValue > -1)
+            for (let i = 0; i < this.dataArray.length; i++)
+                if (i !== indexOfValue)
+                    newDataArray.push(this.dataArray[i].value);
+
+        //Clear Canvas
+        ctx.clearRect(0, 0, canvas.width, canvas.height);
+
+        //Redraw All
+        this.dataArray = [];
+        this.root = null;
+        for (let i = 0; i < newDataArray.length; i++)
+            this.insert(newDataArray[i]);
+    }
 }
 
 //Check if point is in circle
@@ -86,6 +104,22 @@ function isPointInCircle(centerX, centerY, radius, x, y) {
     return false;
 }
 
+//Util functions
+function isInArray(array, el) {
+    for (var i = 0; i < array.length; i++)
+        if (array[i].value == el) return true;
+    return false;
+}
+function getRandomNumber(array) {
+    var rand = Math.random() * 200 - 100;
+    if (!isInArray(tree.dataArray, rand)) {
+        return Math.floor(rand);
+    }
+    return getRandomNumber(array);
+}
+
+
+
 var tree = new BST();
 
 //Listen Space Key Press Event
@@ -93,7 +127,8 @@ document.body.onkeyup = function (e) {
     if (e.keyCode == 32) {
 
         //Create random number between -100 ~ 100
-        const val = Math.random() * 200 - 100;
+        const val = getRandomNumber();
+        console.log(val)
         tree.insert(parseInt(val));
 
         //Check is value is in range of -100 ~ 100
@@ -108,15 +143,17 @@ document.body.onkeyup = function (e) {
 document.addEventListener("click", function (event) {
     //Find clicked number
     let num = 1000;
+
     for (let i = 0; i < tree.dataArray.length; i++) {
         if (isPointInCircle(tree.dataArray[i].x, tree.dataArray[i].y, 30, event.clientX, event.clientY)) {
             num = tree.dataArray[i].value;
             break;
         }
     }
+    console.log(num)
 
     //Remove if number is clicked
     if (num != 1000) {
-        console.log('deleted')
+        tree.remove(num);
     }
 });
