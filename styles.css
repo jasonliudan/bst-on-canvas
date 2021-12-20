@@ -1,3 +1,6 @@
+body, html{
+    overflow: hidden;
+}
 div{ 
     position: fixed;
     display: inline-flex; 
